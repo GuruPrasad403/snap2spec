@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snap2Spec - Premium Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+  :root {
+    --primary: #1f7acb;
+    --secondary: #e91e63;
+    --accent: #6366f1;
+    --bg: #f8fafc;
+    --glass: rgba(255, 255, 255, 0.95);
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --grad: linear-gradient(135deg, var(--primary), var(--secondary));
+  }
+
+  * { box-sizing: border-box; transition: all 0.2s ease; }
+  body { 
+    margin: 0; background: var(--bg); color: var(--text); 
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+
+  /* --- HEADER --- */
+  header { 
+    background: white; border-bottom: 1px solid var(--border); 
+    padding: 1.5rem 2rem; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .hero { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 1rem; }
+  .logo-box { 
+    width: 48px; height: 48px; border-radius: 12px; background: var(--grad);
+    display: grid; place-items: center; box-shadow: 0 10px 15px -3px rgba(31, 122, 203, 0.3);
+  }
+  .title h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+  .sub-text { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; margin-top: 4px; }
+  .badge-proto { 
+    background: #fdf2f8; color: var(--secondary); border: 1px solid #fbcfe8;
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  }
+
+  /* --- MAIN CONTENT --- */
+  main { flex: 1; padding: 2rem; display: flex; justify-content: center; }
+  .container { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .glass-card { 
+    background: var(--glass); border: 1px solid white; border-radius: 24px;
+    padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05);
+  }
+
+  .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  /* --- INPUTS --- */
+  .field-label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; display: block; }
+  .asset-input { 
+    width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px;
+    font-size: 15px; font-weight: 600; outline: none; background: #f1f5f9;
+  }
+  .asset-input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(31, 122, 203, 0.1); }
+
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 16px; padding: 2rem;
+    text-align: center; cursor: pointer; background: #fafafa;
+  }
+  .upload-zone:hover { border-color: var(--primary); background: #f0f9ff; }
+
+  /* --- CONTROLS --- */
+  .control-group { background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); }
+  .slider-box { display: flex; align-items: center; gap: 1rem; margin-top: 10px; }
+  input[type=range] { flex: 1; accent-color: var(--primary); cursor: pointer; }
+  .val-badge { background: var(--primary); color: white; padding: 4px 12px; border-radius: 8px; font-weight: 800; font-size: 14px; }
+
+  /* --- BUTTONS --- */
+  .button-row { display: flex; gap: 12px; margin-top: 2rem; flex-wrap: wrap; }
+  .btn { 
+    padding: 14px 24px; border-radius: 14px; border: none; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 8px; color: white;
+    background: var(--grad); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(233, 30, 99, 0.3); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* --- PROGRESS --- */
+  .status-card { background: white; border: 1px solid var(--border); padding: 1rem; border-radius: 14px; }
+  .p-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+  .p-bar-fill { height: 100%; width: 0%; background: var(--grad); border-radius: 10px; }
+  .p-meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+
+  /* --- PREVIEW --- */
+  #previewContainer { 
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+    gap: 1rem; margin-top: 1.5rem; 
+  }
+  canvas { width: 100%; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+  /* --- FOOTER --- */
+  footer { 
+    padding: 2rem; border-top: 1px solid var(--border); background: white;
+    display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted);
+  }
+  .usage-pill { 
+    background: #1e293b; color: white; padding: 6px 16px; border-radius: 30px; 
+    font-weight: 600; display: flex; gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hero">
+    <div class="brand">
+      <div class="logo-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+      </div>
+      <div class="title">
+        <h1>Snap2Spec</h1>
+        <div class="sub-text">Offline • Marginal PDF • Auto‑save PNGs</div>
+      </div>
+    </div>
+    <div class="badge-proto">PROTOTYPE</div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="glass-card">
+      <div class="grid-layout">
+        <div>
+          <label class="field-label">Asset Identification</label>
+          <input type="text" id="assetName" class="asset-input" value="US-XXXXX">
+        </div>
+        <div>
+          <label class="field-label">Margin Setting</label>
+          <div class="control-group">
+            <div class="slider-box">
+              <input type="range" id="marginSlider" min="3.5" max="5.0" step="0.1" value="4.5">
+              <span class="val-badge" id="marginVal">4.5"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem;">
+        <label class="field-label">Image Sources</label>
+        <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
+          <p style="margin:0; font-weight:600; color:var(--primary)">Click to upload screenshots</p>
+          <p style="margin:5px 0 0; font-size:12px; color:var(--text-muted)">Supports PNG, JPG, WebP</p>
+          <input type="file" id="imageInput" multiple accept="image/*" style="display:none">
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button id="btnSaveAll" class="btn">🚀 Download PNGs + PDF</button>
+        <button id="btnZip" class="btn">📦 Export as ZIP</button>
+        <button id="btnPDFOnly" class="btn">📄 PDF Only</button>
+      </div>
+    </div>
+
+    <div class="grid-layout">
+      <div class="status-card">
+        <div class="p-meta"><span>Image Processing</span><span id="imgCount">0/0</span></div>
+        <div class="p-bar-bg"><div id="imgBar" class="p-bar-fill"></div></div>
+        <div id="imgETA" style="font-size:10px; color:var(--text-muted)">Ready for input...</div>
+      </div>
+      <div class="status-card">
+        <div class="p-meta"><span>PDF Compilation</span><span id="pdfCount">0/0</span></div>
+        <div class="p-bar-bg"><div id="pdfBar" class="p-bar-fill"></div></div>
+        <div id="pdfETA" style="font-size:10px; color:var(--text-muted)">Waiting...</div>
+      </div>
+    </div>
+
+    <div id="previewContainer"></div>
+  </div>
+</main>
+
+<footer>
+  <div>© 2026 Dr. Saurabh Shukla</div>
+  <div class="usage-pill">
+    <span>Assets Processed</span>
+    <span id="usageCounter">0</span>
+  </div>
+</footer>
+
+<script>
+  const IN_TO_PX = 96;
+  const input = document.getElementById('imageInput');
+  const assetInput = document.getElementById('assetName');
+  const slider = document.getElementById('marginSlider');
+  const marginVal = document.getElementById('marginVal');
+  const preview = document.getElementById('previewContainer');
+  const imgBar = document.getElementById('imgBar');
+  const pdfBar = document.getElementById('pdfBar');
+  const imgCount = document.getElementById('imgCount');
+  const pdfCount = document.getElementById('pdfCount');
+  const usageText = document.getElementById('usageCounter');
+  
+  let selected = [];
+  let usageCount = 0;
+
+  function incUsage() { usageCount++; usageText.innerText = usageCount; }
+  slider.oninput = () => { marginVal.innerText = slider.value + '"'; if(selected.length) refreshPreviews(); };
+
+  input.onchange = async () => {
+    selected = []; preview.innerHTML = '';
+    for(let f of input.files){
+      const img = await loadImage(URL.createObjectURL(f));
+      selected.push({ name: f.name.replace(/\.[^/.]+$/, ""), img });
+    }
+    refreshPreviews();
+  };
+
+  function getFormattedName(orig) {
+    return `${orig}_${assetInput.value.trim() || "US-XXXXX"}_margin_added`;
+  }
+
+  async function refreshPreviews() {
+    preview.innerHTML = '';
+    const m = parseFloat(slider.value) * IN_TO_PX;
+    for(let i=0; i<Math.min(selected.length, 5); i++){
+      const cvs = createPaddedCanvas(selected[i].img, m);
+      preview.appendChild(cvs);
+    }
+  }
+
+  document.getElementById('btnZip').onclick = async () => {
+    if(!selected.length) return;
+    lockUI(true); incUsage();
+    const zip = new JSZip();
+    const m = parseFloat(slider.value) * IN_TO_PX;
+    for(let i=0; i<selected.length; i++){
+      const cvs = createPaddedCanvas(selected[i].img, m);
+      const b = await new Promise(r => cvs.toBlob(r, 'image/png'));
+      zip.file(`${getFormattedName(selected[i].name)}.png`, b);
+      updateProgress('img', i+1, selected.length);
+    }
+    const c = await zip.generateAsync({type:"blob"});
+    saveAs(c, `${assetInput.value.trim()}_Package.zip`);
+    lockUI(false);
+  };
+
+  document.getElementById('btnSaveAll').onclick = async () => {
+    if(!selected.length) return;
+    lockUI(true); incUsage();
+    const m = parseFloat(slider.value) * IN_TO_PX;
+    const canvases = [];
+    for(let i=0; i<selected.length; i++){
+      const cvs = createPaddedCanvas(selected[i].img, m);
+      canvases.push(cvs);
+      const b = await new Promise(r => cvs.toBlob(r, 'image/png'));
+      saveAs(b, `${getFormattedName(selected[i].name)}.png`);
+      updateProgress('img', i+1, selected.length);
+      await new Promise(r => setTimeout(r, 400));
+    }
+    await buildPDF(canvases);
+    lockUI(false);
+  };
+
+  document.getElementById('btnPDFOnly').onclick = async () => {
+    if(!selected.length) return;
+    lockUI(true); incUsage();
+    const m = parseFloat(slider.value) * IN_TO_PX;
+    const canvases = selected.map(s => createPaddedCanvas(s.img, m));
+    await buildPDF(canvases);
+    lockUI(false);
+  };
+
+  async function buildPDF(canvases) {
+    const pdfChunks = ["%PDF-1.4\n%âãÏÓ\n"];
+    const objs = []; const kids = []; let num = 1;
+    const enc = new TextEncoder();
+    for(let i=0; i<canvases.length; i++){
+      const c = canvases[i];
+      const jpeg = dataURLToU8(c.toDataURL('image/jpeg', 0.8));
+      const imgNum = num++;
+      objs.push({num: imgNum, buf: concat([enc.encode(`${imgNum} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`), jpeg, enc.encode(`\nendstream\nendobj\n`)])});
+      const contNum = num++;
+      const body = enc.encode(`q\n${c.width} 0 0 ${c.height} 0 0 cm\n/Im${i} Do\nQ\n`);
+      objs.push({num: contNum, buf: concat([enc.encode(`${contNum} 0 obj\n<< /Length ${body.length} >>\nstream\n`), body, enc.encode(`endstream\nendobj\n`)])});
+      const pageNum = num++;
+      objs.push({num: pageNum, buf: enc.encode(`${pageNum} 0 obj\n<< /Type /Page /Parent 99 0 R /MediaBox [0 0 ${c.width} ${c.height}] /Resources << /XObject << /Im${i} ${imgNum} 0 R >> >> /Contents ${contNum} 0 R >>\nendobj\n`)});
+      kids.push(`${pageNum} 0 R`);
+      updateProgress('pdf', i+1, canvases.length);
+      await new Promise(r => requestAnimationFrame(r));
+    }
+    const pNum = num++;
+    objs.push({num: pNum, buf: enc.encode(`${pNum} 0 obj\n<< /Type /Pages /Count ${canvases.length} /Kids [ ${kids.join(' ')} ] >>\nendobj\n`)});
+    const cNum = num++;
+    objs.push({num: cNum, buf: enc.encode(`${cNum} 0 obj\n<< /Type /Catalog /Pages ${pNum} 0 R >>\nendobj\n`)});
+    let offset = pdfChunks[0].length;
+    const xref = [];
+    const final = [enc.encode(pdfChunks[0])];
+    for(let o of objs){
+      let b = o.buf;
+      let s = new TextDecoder().decode(b);
+      if(s.includes('/Parent 99 0 R')) b = enc.encode(s.replace('99 0 R', `${pNum} 0 R`));
+      xref[o.num] = offset; final.push(b); offset += b.length;
+    }
+    const startX = offset;
+    let xTxt = `xref\n0 ${num}\n0000000000 65535 f \n`;
+    for(let i=1; i<num; i++) xTxt += `${String(xref[i]||0).padStart(10,'0')} 00000 n \n`;
+    final.push(enc.encode(`${xTxt}trailer\n<< /Size ${num} /Root ${cNum} 0 R >>\nstartxref\n${startX}\n%%EOF\n`));
+    saveAs(new Blob(final, {type:'application/pdf'}), `${assetInput.value.trim()}_Submission_Report.pdf`);
+  }
+
+  function createPaddedCanvas(img, m) {
+    const c = document.createElement('canvas');
+    c.width = img.width + m*2; c.height = img.height + m*2;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = 'white'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.drawImage(img, m, m);
+    return c;
+  }
+
+  function updateProgress(id, cur, tot) {
+    document.getElementById(id+'Bar').style.width = (cur/tot*100)+'%';
+    document.getElementById(id+'Count').innerText = cur+'/'+tot;
+  }
+
+  function lockUI(s){ document.querySelectorAll('button, input').forEach(b=>b.disabled=s); }
+  function loadImage(src){ return new Promise(r=>{const i=new Image(); i.onload=()=>r(i); i.src=src;}); }
+  function saveAs(b, n){ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=n; a.click(); }
+  function dataURLToU8(d){ const s=atob(d.split(',')[1]); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+  function concat(arrs){ let l=0; for(let a of arrs) l+=a.length; const o=new Uint8Array(l); let f=0; for(let a of arrs){ o.set(a,f); f+=a.length; } return o; }
+</script>
+</body>
+</html>
